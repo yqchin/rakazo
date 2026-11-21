@@ -24,14 +24,18 @@ pip install -q torch torchvision torchaudio --index-url https://download.pytorch
 pip install -q -r requirements.txt
 pip install -q -U "huggingface_hub[hf_xet]"
 
-# Smallest working set: INT8 model + INT8 text encoder + video/audio decoders (~38.7 GB).
+# Smallest working set for ComfyUI's LTX-2.5 templates (~44.5 GB): INT8 model, INT8 text encoders,
+# video/audio decoders and the x2 spatial upscaler.
 # The repo's folders already match ComfyUI's models/ folders.
 hf download Lightricks/LTX-2.5 \
   diffusion_models/ltx-2.5-22b-distilled-transformer-comfy-int8-convrot.safetensors \
   text_encoders/gemma4-12b-with-proj-ltx-2.5-comfy-int8-convrot.safetensors \
   vae/ltx-2.5-video-vae-bf16.safetensors \
   vae/ltx-2.5-audio-vae-bf16.safetensors \
+  latent_upscale_models/ltx-2.5-latent-spatial-upscaler-x2-bf16-1.0.safetensors \
   --local-dir /root/ComfyUI/models
+# ComfyUI's LTX-2.5 templates also use this small text encoder (public, not gated).
+hf download Comfy-Org/gemma-4 text_encoders/gemma4_e2b_it_int8_convrot.safetensors --local-dir /root/ComfyUI/models
 unset HF_TOKEN
 
 cat > /etc/systemd/system/comfyui.service <<UNIT
