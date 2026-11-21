@@ -45,7 +45,9 @@ After=network-online.target
 
 [Service]
 WorkingDirectory=/root/ComfyUI
-ExecStart=/root/ComfyUI/venv/bin/python main.py --listen 127.0.0.1 --port 8188
+# Hostinger GPU instances are containers: no swap, and pinned host memory does not work through
+# their GPU proxy. Load models one at a time and keep VRAM headroom so LTX-2.5 fits in 32 GB.
+ExecStart=/root/ComfyUI/venv/bin/python main.py --listen 127.0.0.1 --port 8188 --disable-dynamic-vram --reserve-vram 1.5 --disable-pinned-memory
 Restart=always
 RestartSec=5
 
