@@ -1,7 +1,7 @@
 #!/bin/bash
 # Runs ON the Hermes VPS. Sets up a fresh GPU instance with ltx-setup.sh, then keeps a private tunnel
 # so Hermes reaches that GPU's ComfyUI at http://172.17.0.1:8188 (not reachable from the internet).
-# Usage: bash connect-gpu.sh <gpu-host> [ssh-port] [user]   (asks for your Hugging Face token, hidden)
+# Usage: bash connect-gpu.sh <gpu-host> [ssh-port] [user]   (reads /root/.hf_token, or asks for the token)
 # A non-root user needs passwordless sudo on the GPU instance (the setup installs packages and a service).
 set -euo pipefail
 HOST="${1:?usage: bash connect-gpu.sh <gpu-host> [ssh-port] [user]}"
@@ -11,7 +11,8 @@ KEY=/root/.ssh/gpu_key
 SSH=(ssh -i "$KEY" -p "$PORT" -o StrictHostKeyChecking=accept-new -o ServerAliveInterval=30 "$USER_NAME@$HOST")
 SRC=https://raw.githubusercontent.com/yqchin/rakazo/main/infra/hostinger/gpu/ltx-setup.sh
 
-read -rsp "Hugging Face token (hidden): " HF; echo
+# The Hugging Face token comes from /root/.hf_token (mode 600) when present, otherwise it is asked for.
+if [ -s /root/.hf_token ]; then HF=$(cat /root/.hf_token); else read -rsp "Hugging Face token (hidden): " HF; echo; fi
 SUDO=""; [ "$USER_NAME" = root ] || SUDO="sudo -n"
 curl -fsSL "$SRC" | "${SSH[@]}" 'cat > /tmp/ltx-setup.sh'
 printf '%s\n' "$HF" | "${SSH[@]}" "$SUDO bash /tmp/ltx-setup.sh"
